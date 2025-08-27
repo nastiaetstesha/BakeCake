@@ -41,10 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'catalog',
-    'customers',
-    'promos',
-    'orders',
+    'catalog.apps.CatalogConfig',
+    'customers.apps.CustomersConfig',
+    'promos.apps.PromosConfig',
+    'orders.apps.OrdersConfig',
 ]
 
 MIDDLEWARE = [
@@ -132,3 +132,5 @@ STATICFILES_DIRS = [
 STATIC_ROOT = ''
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# LOGIN_REDIRECT_URL = 'home'      # куда вести после логина - индекс
+LOGOUT_REDIRECT_URL = 'login'

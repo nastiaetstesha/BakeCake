@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="ru">
+  <body>
+    <h1>Вход</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div>{{ form.username.label_tag }} {{ form.username }} {{ form.username.errors }}</div>
+      <div>{{ form.password.label_tag }} {{ form.password }} {{ form.password.errors }}</div>
+      <button type="submit">Войти</button>
+    </form>
+  </body>
+</html>
