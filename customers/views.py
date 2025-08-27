@@ -26,16 +26,14 @@ class ClientProfileView(View):
             order_data = {
                 "order_id": order.id,
                 "status": order.get_status_display(),
-                "status_code": order.status,  # добавляем код статуса для стилей
+                "status_code": order.status,
                 "total": order.total,
                 "delivery_date": order.delivery_date,
                 "created_at": order.created_at,
                 "items": []
             }
             
-            # Обрабатываем каждую позицию в заказе
             for item in order.items.all():
-                # Получаем ягоды с ценами на момент покупки
                 berries_with_prices = []
                 for berry_link in item.berry_links.all():
                     berries_with_prices.append({
@@ -43,7 +41,6 @@ class ClientProfileView(View):
                         'price': berry_link.price_at_purchase
                     })
                 
-                # Получаем декор с ценами на момент покупки
                 decors_with_prices = []
                 for decor_link in item.decor_links.all():
                     decors_with_prices.append({
