@@ -8,7 +8,6 @@ class ClientProfileView(View):
         if not request.user.is_authenticated:
             return render(request, "lk.html", {"client_orders": []})
         
-        # Получаем заказы пользователя с предзагрузкой связанных данных
         orders = Order.objects.filter(customer__user=request.user).prefetch_related(
             'items',
             'items__levels',
