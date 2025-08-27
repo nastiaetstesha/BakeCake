@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from customers.models import Customer
 from promos.models import PromoCode
-from catalog.models import Option
+from catalog.models import Option, Cake
 
 
 class Order(models.Model):
@@ -94,6 +94,14 @@ class OrderItem(models.Model):
         related_name='items',
         verbose_name='Заказ'
         )
+    cake = models.ForeignKey(
+        Cake,
+        on_delete=models.PROTECT,
+        related_name='order_items',
+        verbose_name='Базовый торт',
+        null=True,   # временно - бд поломалась 
+        blank=True
+    )
 
     # Одиночные опции (limit_choices_to по slug категории)
     levels = models.ForeignKey(
