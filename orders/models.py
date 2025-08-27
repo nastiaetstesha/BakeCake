@@ -119,9 +119,17 @@ class OrderItem(models.Model):
     )
 
     # Надпись
-    inscription_text = models.CharField('Текст надписи', max_length=64, blank=True)
-    inscription_price = models.DecimalField('Цена надписи', max_digits=8, decimal_places=2, default=Decimal('0.00'))
-
+    inscription_text = models.CharField(
+        'Надпись (необязательно)',
+        max_length=64,
+        blank=True,
+        help_text='Мы можем разместить на торте любую надпись, например: «С днём рождения!»'
+    )
+    inscription_price = models.DecimalField(
+        'Цена надписи, ₽',
+        max_digits=8, decimal_places=2,
+        default=Decimal('500.00')
+    )
     # Мультивыбор опций — ягоды и декор через through, чтобы фиксировать цену на момент покупки
     berries = models.ManyToManyField(
         Option, through='OrderItemBerry', related_name='berry_items', blank=True, verbose_name='Ягоды'
@@ -133,6 +141,18 @@ class OrderItem(models.Model):
     # Денежные поля по позиции
     base_price = models.DecimalField('Базовая цена торта', max_digits=10, decimal_places=2, default=Decimal('0.00'))
     line_subtotal = models.DecimalField('Сумма по позиции', max_digits=10, decimal_places=2, default=Decimal('0.00'))
+
+    def save(self, *args, **kwargs):
+        # если есть текст — берём цену надписи с торта, иначе 0
+        if self.inscription_text and self.inscription_text.strip():
+            # если цена не задана вручную, возьмём с торта
+            if not self.inscription_price or self.inscription_price == Decimal('0.00'):
+                if getattr(self, 'cake', None) and self.cake.inscription_extra_price is not None:
+                    self.inscription_price = self.cake.inscription_extra_price
+        else:
+            self.inscription_price = Decimal('0.00')
+
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Позиция заказа'
