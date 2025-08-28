@@ -1,8 +1,10 @@
-from django.views import View
 from orders.models import Order
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
+import json
+
 from .forms import SignUpForm
 from .models import Customer
 
@@ -23,68 +25,66 @@ def signup(request):
     return render(request, 'signup.html', {'form': form})
 
 
-class ClientProfileView(View):
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return render(request, "lk.html", {"client_orders": []})
+def view_lk(request):
+    reg = request.GET.get('reg')
+    if reg:
+        try:
+            customer = Customer.objects.get(phone=reg)
+            if customer and customer.user:
+                login(request, customer.user)
+        except ObjectDoesNotExist:
+            pass
+    
+    if request.method == 'POST':
+        phone = request.POST.get('PHONE')
+        name = request.POST.get('NAME')
+        email = request.POST.get('EMAIL')
+        user = request.user
         
-        orders = Order.objects.filter(customer__user=request.user).prefetch_related(
-            'items',
-            'items__levels',
-            'items__shape', 
-            'items__topping',
-            'items__berry_links',
-            'items__berry_links__option',
-            'items__decor_links',
-            'items__decor_links__option',
-        ).order_by('-created_at')
+        if user.is_authenticated:
+            try:
+                customer = Customer.objects.get(user=user)
+                customer.phone = phone
+                customer.save()
+                
+                user.first_name = name
+                user.email = email
+                user.save()
+            except ObjectDoesNotExist:
+                # Если у пользователя нет Customer профиля, создаем его
+                customer = Customer.objects.create(
+                    user=user,
+                    phone=phone
+                )
+                user.first_name = name
+                user.email = email
+                user.save()
+
+    customer_data = {
+        'name': '',
+        'phone': '',
+        'email': '',
+    }
+    
+    user = request.user
+    if user.is_authenticated:
+        customer_data['name'] = user.first_name or user.username
+        customer_data['email'] = user.email
         
-        client_orders = []
-
-        for order in orders:
-            order_data = {
-                "order_id": order.id,
-                "status": order.get_status_display(),
-                "status_code": order.status,
-                "total": order.total,
-                "delivery_date": order.delivery_date,
-                "created_at": order.created_at,
-                "items": []
-            }
+        try:
+            customer = Customer.objects.get(user=user)
+            orders = Order.objects.filter(customer=customer)
+            customer_data['phone'] = customer.phone
             
-            for item in order.items.all():
-                berries_with_prices = []
-                for berry_link in item.berry_links.all():
-                    berries_with_prices.append({
-                        'title': berry_link.option.title,
-                        'price': berry_link.price_at_purchase
-                    })
-                
-                decors_with_prices = []
-                for decor_link in item.decor_links.all():
-                    decors_with_prices.append({
-                        'title': decor_link.option.title,
-                        'price': decor_link.price_at_purchase
-                    })
-                
-                item_data = {
-                    "base_price": item.base_price,
-                    "line_subtotal": item.line_subtotal,
-                    "levels": item.levels.title if item.levels else "Не выбрано",
-                    "shape": item.shape.title if item.shape else "Не выбрано",
-                    "topping": item.topping.title if item.topping else "Не выбрано",
-                    "inscription": item.inscription_text if item.inscription_text else "Без надписи",
-                    "inscription_price": item.inscription_price,
-                    "berries": berries_with_prices,
-                    "decors": decors_with_prices
-                }
-                
-                order_data["items"].append(item_data)
-            
-            client_orders.append(order_data)
-
-        context = {
-            "client_orders": client_orders,
-        }
-
-        return render(request, "lk.html", context)
+            customer_json = json.dumps(customer_data)
+            return render(request, 'lk.html', context={
+                'orders': orders, 
+                'customer_json': customer_json
+            })
+        except ObjectDoesNotExist:
+            # Если у пользователя нет Customer профиля
+            customer_json = json.dumps(customer_data)
+            return render(request, 'lk.html', context={'customer_json': customer_json})
+    
+    customer_json = json.dumps(customer_data)
+    return render(request, 'lk.html', context={'customer_json': customer_json})

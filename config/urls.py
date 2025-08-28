@@ -3,11 +3,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from customers.views import ClientProfileView
+from customers.views import view_lk
 
 urlpatterns = [
+    # path('', index),
     path('admin/', admin.site.urls),
-    path('lk/', ClientProfileView.as_view(), name='lk'),
+    path('lk/', view_lk),
     path('accounts/', include('customers.urls')),  # /accounts/signup, /accounts/login
 ]
 

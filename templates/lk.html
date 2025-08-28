@@ -4,8 +4,7 @@
 Личный кабинет
 {% endblock title %}
 {% block content %}
-{% load static %}
-<script type='text/javascript'>var customer = {{ customer_json|safe }};</script>
+<script type='text/javascript'>var customer = {{ customer_json|safe }}</script>
 <div class="container mt-header mb-5">
   <div class="row mt-5">
     <div class="col-12 col-xxl-6 d-flex justify-content-center">
@@ -15,7 +14,7 @@
       {% block ifauth %}
       {% if user.is_authenticated %}
       <form class="d-none" method="post">
-        {% csrf_token %}
+                {% csrf_token %}
         <input v-model="Name" name="NAME">
         <input v-model="Phone" name="PHONE">
         <input v-model="Email" name="EMAIL">
@@ -64,67 +63,102 @@
         </div>
       </v-form>
       <h2 class="fs_40 cake_pink mt-5">Мои заказы</h2>
-      {% if client_orders %}
-        {% for order in client_orders %}
+      {% if orders %}
+        {% for order in orders %}
           <section class="my-2">
-            <span class="cake_blue lk__order d-flex" data-bs-toggle="modal" data-bs-target="#OrderModal{{order.order_id}}">
+            <span class="cake_blue lk__order d-flex" data-bs-toggle="modal" data-bs-target="#OrderModal{{order.id}}">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-clock-fill" viewBox="0 0 16 16">
-                {% if order.status_code == 2 %}
+                {% if order.status == 'delivered' or order.status == 'paid' %}
                   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
                 {% else %}
                   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
                 {% endif %}
               </svg>
-              <span class="ms-1">#{{ order.order_id }} - {{ order.created_at|date:"d.m.Y H:i" }}</span>
+              <span class="ms-1">#{{ order.id }} - {{ order.get_status_display }}</span>
             </span>
-            <aside class="modal fade" id="OrderModal{{order.order_id}}" tabindex="-1" aria-labelledby="ModalLabel{{order.order_id}}" aria-hidden="true">
+            <aside class="modal fade" id="OrderModal{{order.id}}" tabindex="-1" aria-labelledby="ModalLabel{{order.id}}" aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h5 class="modal-title cake_pink" id="ModalLabel{{order.order_id}}">Заказ #{{ order.order_id }}</h5>
+                    <h5 class="modal-title cake_pink" id="ModalLabel{{order.id}}">Заказ #{{ order.id }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
-                    <span class="cake_blue">Статус: {{ order.status }}</span><br>
-                    <span class="cake_blue">Общая сумма: {{ order.total }} руб.</span><br>
-                    <span class="cake_blue">Дата доставки: {{ order.delivery_date|date:"d.m.Y" }}</span><br>
-                    <span class="cake_blue">Дата создания: {{ order.created_at|date:"d.m.Y H:i" }}</span><br>
-                    <hr>
-                    <h6 class="cake_pink">Товары в заказе:</h6>
-                    {% for item in order.items %}
-                      <div class="mb-3">
-                        <span class="cake_blue">Уровней: {{ item.levels }}</span><br>
-                        <span class="cake_blue">Форма: {{ item.shape }}</span><br>
-                        <span class="cake_blue">Топпинг: {{ item.topping }}</span><br>
-                        <span class="cake_blue">Ягоды: 
-                          {% if item.berries %}
-                            {% for berry in item.berries %}
-                              {{ berry.title }}{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                          {% else %}
-                            нет
-                          {% endif %}
-                        </span><br>
-                        <span class="cake_blue">Декор: 
-                          {% if item.decors %}
-                            {% for decor in item.decors %}
-                              {{ decor.title }}{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                          {% else %}
-                            нет
-                          {% endif %}
-                        </span><br>
-                        <span class="cake_blue">Надпись: {{ item.inscription }}</span><br>
-                        <span class="cake_blue">Цена надписи: {{ item.inscription_price }} руб.</span><br>
-                        <span class="cake_blue">Базовая цена: {{ item.base_price }} руб.</span><br>
-                        <span class="cake_pink">Итоговая цена: {{ item.line_subtotal }} руб.</span>
-                      </div>
-                      {% if not forloop.last %}<hr>{% endif %}
+                    <!-- Информация о заказе -->
+                    <div class="mb-3">
+                      <strong class="cake_blue">Статус:</strong> 
+                      <span class="cake_pink">{{ order.get_status_display }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <strong class="cake_blue">Дата создания:</strong> 
+                      <span class="cake_blue">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <strong class="cake_blue">Дата доставки:</strong> 
+                      <span class="cake_blue">{{ order.delivery_date|date:"d.m.Y" }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <strong class="cake_blue">Адрес доставки:</strong> 
+                      <span class="cake_blue">{{ order.city }}, {{ order.street }}, д.{{ order.house }}{% if order.apartment %}, кв.{{ order.apartment }}{% endif %}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <strong class="cake_blue">Контактное лицо:</strong> 
+                      <span class="cake_blue">{{ order.contact_name }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <strong class="cake_blue">Телефон:</strong> 
+                      <span class="cake_blue">{{ order.phone }}</span>
+                    </div>
+                    
+                    {% if order.email %}
+                    <div class="mb-3">
+                      <strong class="cake_blue">Email:</strong> 
+                      <span class="cake_blue">{{ order.email }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Позиции заказа -->
+                    <h6 class="cake_pink mt-4">Состав заказа:</h6>
+                    {% for item in order.items.all %}
+                    <div class="mb-2">
+                      <strong class="cake_blue">Торт:</strong> 
+                      <span class="cake_blue">
+                        {% if item.cake %}{{ item.cake.name }}{% else %}Кастомный торт{% endif %}
+                      </span>
+                      <br>
+                      <small class="cake_grey">
+                        Уровни: {% if item.levels %}{{ item.levels.name }}{% else %}не указано{% endif %},
+                        Форма: {% if item.shape %}{{ item.shape.name }}{% else %}не указано{% endif %},
+                        Топпинг: {% if item.topping %}{{ item.topping.name }}{% else %}не указано{% endif %}
+                      </small>
+                      <br>
+                      <small class="cake_grey">
+                        Ягоды: {% if item.berries.all %}{% for berry in item.berries.all %}{{ berry.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}нет{% endif %},
+                        Декор: {% if item.decors.all %}{% for decor in item.decors.all %}{{ decor.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}нет{% endif %}
+                      </small>
+                      {% if item.inscription_text %}
+                      <br>
+                      <small class="cake_grey">Надпись: "{{ item.inscription_text }}"</small>
+                      {% endif %}
+                      <br>
+                      <small class="cake_pink">Цена: {{ item.line_subtotal }} ₽</small>
+                    </div>
                     {% endfor %}
+                    
+                    <!-- Итоговая сумма -->
+                    <div class="mt-3 pt-3 border-top">
+                      <strong class="cake_blue">Итого к оплате:</strong> 
+                      <span class="cake_pink fs-5">{{ order.total }} ₽</span>
+                    </div>
                   </div>
                   <div class="modal-footer d-flex justify-content-between">
-                    <span class="cake_blue d-flex">Статус: {{ order.status }}</span>
-                    <span class="cake_blue d-flex align-items-center">Дата доставки: {{ order.delivery_date|date:"d.m.Y" }}</span>
+                    <span class="cake_blue">Статус: {{ order.get_status_display }}</span>
+                    <span class="cake_blue">Дата доставки: {{ order.delivery_date|date:"d.m.Y" }}</span>
                   </div>
                 </div>
               </div>
@@ -137,7 +171,54 @@
         <span class="cake_grey">Есть вопросы?</span>
         <span class="cake_grey">Воспользуйтесь нашим <a href="https://vk.com/devmanorg" class="text-decoration-none cake_pink">чат-ботом</a>.</span>
       {% endif %}
-        <button class="btn text-white rounded-pill align-self-end px-5 mt-3 shadow-none cake__button cake__bg_pink"><a href="./logout" class='text-white text-decoration-none'>Выйти</a></button>
+        <button class="btn text-white rounded-pill align-self-end px-5 mt-3 shadow-none cake__button cake__bg_pink"><a href="{% url 'signup' %}" class = 'text-white'>Выйти<a></button>
+      {% else %}
+        <a class="nav-link fw-lighter me-1 cake_blue position-relative" href="#RegModal" data-bs-toggle="modal">
+          <label for="reg" class="modal-title font_Gogh fs_40 cake_blue" id="RegModalLabel">Вход / Регистрация</label>
+          <!--метка на иконке, убрать класс d-none чтоб появилась-->
+          <span class="position-absolute translate-middle badge rounded-pill cake__bg_pink fs_8"></span>
+        </a>
+        <aside class="modal fade" id="RegModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="RegModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content px-4 cake__modal">
+              <div class="modal-header border-0 pb-0 pt-4">
+                <button @click="Reset" type="button" class="btn-close border rounded-pill" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-header border-0 py-0">
+                <label for="reg" class="modal-title font_Gogh fs_40 cake_blue" id="RegModalLabel">Вход / Регистрация</label>
+              </div>
+              <form class="d-none">
+                <input v-model="RegInput" type="text" name="REG">
+                <button type="submit" ref="HiddenFormSubmitReg">reg</button>
+              </form>
+              <v-form :validation-schema="RegSchema" class="modal-body position-relative d-flex flex-column align-items-center px-5 pb-4" @submit="RegSubmit">
+                <v-field v-if="RegInput !== 'Регистрация успешна'" v-model="RegInput" name="reg" type="text" id="reg" :placeholder="Step === `Number` ? `Введите ваш номер` : `Введите код`" class="form-control cake__textinput"></v-field>
+                <v-field v-if="Step === 'Number'" v-model="RegInput" type="phone" name="phone_format" class="d-none"></v-field>
+                <v-field v-if="Step === 'Code'" v-model="RegInput" type="phone" name="code_format" class="d-none"></v-field>
+                <button v-if="RegInput !== 'Регистрация успешна'" type="submit" class="btn text-white w-100 rounded-pill mt-3 py-2 shadow-none cake__button fs_12 cake__bg_pink">Отправить</button>
+                <span v-if="RegInput === 'Регистрация успешна'" class="cake_grey text-center">Регистрация успешна</span>
+                <small class="fs_12 cake_pink text-center position-absolute bottom-0"><error-message name="reg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-exclamation-circle mb-1" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                  </svg>
+                  {% verbatim %}
+                    {{Step === 'Number' ? 'Введите номер' : 'Введите код'}}</error-message></small>
+                  {% endverbatim %}
+                <error-message name="phone_format" class="fs_12 cake_pink text-center position-absolute bottom-0"></error-message>
+                <error-message name="code_format" class="fs_12 cake_pink text-center position-absolute bottom-0"></error-message>
+              </v-form>
+    
+              <div class="modal-footer d-flex flex-column justify-content-between align-items-center text-center border-0 mx-5">
+                {% verbatim %}
+                  <p class="fs_12 cake_grey">{{Step === `Number` ? `Нажимая на кнопку, вы соглашаетесь на обработку персональных данных в соответствии с политикой конфиденциальности` : Step === 'Code' ? `Осталось времени: 05:00` : ``}}</p>
+                {% endverbatim %}
+                <a href="#" v-if="Step === `Code`" @click.prevent="ToRegStep1" class="text-decoration-none cake_pink fs_12">изменить данные</a>
+              </div>
+            </div>
+          </div>
+        </aside>      
+      {% endif %}
       {% endblock ifauth %}
     </div>
   </div>
