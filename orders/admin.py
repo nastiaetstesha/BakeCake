@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django import forms
+
 from .models import Order, OrderItem, OrderItemBerry, OrderItemDecor
 
 
@@ -16,6 +18,18 @@ class OrderItemInline(admin.StackedInline):
     model = OrderItem
     extra = 0
     inlines = [OrderItemBerryInline, OrderItemDecorInline]
+
+
+class OrderItemForm(forms.ModelForm):
+    inscription_text = forms.CharField(
+        label='Надпись (необязательно)',
+        required=False,
+        help_text='Мы можем разместить на торте любую надпись, например: «С днём рождения!». Доплата добавится автоматически.'
+    )
+
+    class Meta:
+        model = OrderItem
+        fields = '__all__'
 
 
 @admin.register(Order)

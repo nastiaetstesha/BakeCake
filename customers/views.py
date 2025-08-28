@@ -1,6 +1,26 @@
-from django.shortcuts import render
 from django.views import View
 from orders.models import Order
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django.db import transaction
+from .forms import SignUpForm
+from .models import Customer
+
+
+@transaction.atomic
+def signup(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            phone = getattr(user, '_deferred_customer_phone', '')
+            if phone and not hasattr(user, 'customer'):
+                Customer.objects.create(user=user, phone=phone)
+            login(request, user)
+            return redirect('home')
+    else:
+        form = SignUpForm()
+    return render(request, 'signup.html', {'form': form})
 
 
 class ClientProfileView(View):
