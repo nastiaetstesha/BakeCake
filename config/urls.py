@@ -8,7 +8,7 @@ from customers.views import view_lk
 urlpatterns = [
     # path('', index),
     path('admin/', admin.site.urls),
-    path('lk/', view_lk),
+    path('lk/', view_lk, name='lk'),
     path('accounts/', include('customers.urls')),  # /accounts/signup, /accounts/login
 ]
 
