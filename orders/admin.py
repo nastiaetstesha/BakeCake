@@ -1,20 +1,21 @@
 from django.contrib import admin
 from django import forms
+import nested_admin
 
 from .models import Order, OrderItem, OrderItemBerry, OrderItemDecor
 
 
-class OrderItemBerryInline(admin.TabularInline):
+class OrderItemBerryInline(nested_admin.NestedTabularInline):
     model = OrderItemBerry
     extra = 0
 
 
-class OrderItemDecorInline(admin.TabularInline):
+class OrderItemDecorInline(nested_admin.NestedTabularInline):
     model = OrderItemDecor
     extra = 0
 
 
-class OrderItemInline(admin.StackedInline):
+class OrderItemInline(nested_admin.NestedStackedInline):
     model = OrderItem
     extra = 0
     inlines = [OrderItemBerryInline, OrderItemDecorInline]
@@ -33,7 +34,7 @@ class OrderItemForm(forms.ModelForm):
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(nested_admin.NestedModelAdmin):
     list_display = ('id', 'created_at', 'status', 'contact_name', 'phone', 'total', 'utm_source', 'utm_medium')
     list_filter = ('status', 'created_at', 'utm_source', 'utm_medium')
     search_fields = ('contact_name', 'phone', 'email', 'city', 'street')
