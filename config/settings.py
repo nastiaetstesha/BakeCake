@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'customers.apps.CustomersConfig',
     'promos.apps.PromosConfig',
     'orders.apps.OrdersConfig',
+    'nested_admin',
 ]
 
 MIDDLEWARE = [
