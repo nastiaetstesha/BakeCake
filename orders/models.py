@@ -86,9 +86,8 @@ class Order(models.Model):
         return min(self.promo_code.amount, subtotal)
 
     def recalc_totals(self, save: bool = True):
-        # убедимся в актуальности позиций
         for item in self.items.all():
-            item.recalc_subtotal(save=True)
+            item.recalc_subtotal(save=False)
 
         subtotal = sum((i.line_subtotal for i in self.items.all()), Decimal('0.00'))
         discount = self.calc_discount(subtotal)
@@ -99,7 +98,6 @@ class Order(models.Model):
         self.subtotal = subtotal
         self.discount_total = discount
         self.total = total
-
         if save:
             self.save(update_fields=['subtotal', 'discount_total', 'total'])
 
@@ -156,13 +154,20 @@ class OrderItem(models.Model):
         default=Decimal('500.00')
     )
     # Мультивыбор? опций — ягоды и декор через through, чтобы фиксировать цену на момент покупки
-    berries = models.ManyToManyField(
-        Option, through='OrderItemBerry', related_name='berry_items', blank=True, verbose_name='Ягоды'
+    # berries = models.ManyToManyField(
+    #     Option, through='OrderItemBerry', related_name='berry_items', blank=True, verbose_name='Ягоды'
+    # )
+    # decors = models.ManyToManyField(
+    #     Option, through='OrderItemDecor', related_name='decor_items', blank=True, verbose_name='Декор'
+    # )
+    berry = models.ForeignKey(
+        Option, on_delete=models.PROTECT, null=True, blank=True, related_name='berry_item',
+        limit_choices_to={'category__slug': 'berries'}, verbose_name='Ягоды'
     )
-    decors = models.ManyToManyField(
-        Option, through='OrderItemDecor', related_name='decor_items', blank=True, verbose_name='Декор'
+    decor = models.ForeignKey(
+        Option, on_delete=models.PROTECT, null=True, blank=True, related_name='decor_item',
+        limit_choices_to={'category__slug': 'decor'}, verbose_name='Декор'
     )
-
     # Денежные поля по позиции
     base_price = models.DecimalField(
         'Базовая цена торта, ₽', max_digits=10, decimal_places=2,
@@ -173,52 +178,35 @@ class OrderItem(models.Model):
         default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))]
     )
 
-    def calc_options_delta(self) -> Decimal:
-        delta = Decimal('0.00')
-
-        if self.levels:
-            delta += self.levels.price_delta or Decimal('0.00')
-        if self.shape:
-            delta += self.shape.price_delta or Decimal('0.00')
-        if self.topping:
-            delta += self.topping.price_delta or Decimal('0.00')
-
-        # ягоды/декор — берём зафиксированную цену, если нет — текущую надбавку опции
-        delta += sum((link.price_at_purchase or link.option.price_delta or Decimal('0.00'))
-                     for link in self.berry_links.all())
-        delta += sum((link.price_at_purchase or link.option.price_delta or Decimal('0.00'))
-                     for link in self.decor_links.all())
-
-        # надпись
-        if self.inscription_text.strip():
-            price = self.inscription_price
-            if (price is None or price == Decimal('0.00')) and self.cake:
-                price = self.cake.inscription_extra_price
-            delta += price or Decimal('0.00')
-
-        return delta
+    def _delta(self, opt: Option | None) -> Decimal:
+        return (opt.price_delta if opt else Decimal('0.00')) or Decimal('0.00')
 
     def recalc_subtotal(self, save: bool = True) -> Decimal:
-        # если базовая цена не зафиксирована — копируем из торта
         if (self.base_price is None or self.base_price == Decimal('0.00')) and self.cake:
             self.base_price = self.cake.base_price or Decimal('0.00')
 
-        total = (self.base_price or Decimal('0.00')) + self.calc_options_delta()
+        total = (self.base_price or Decimal('0.00'))
+        total += self._delta(self.levels) + self._delta(self.shape) + self._delta(self.topping)
+        total += self._delta(self.berry) + self._delta(self.decor)
+
+        if (self.inscription_text or '').strip():
+            total += self.inscription_price or Decimal('0.00')
+
         if total < 0:
             total = Decimal('0.00')
 
         self.line_subtotal = total
-
         if save:
-            self.save(update_fields=['base_price', 'line_subtotal', 'inscription_price'])
+            super(OrderItem, self).save(update_fields=['base_price', 'line_subtotal', 'inscription_price'])
         return self.line_subtotal
 
     def save(self, *args, **kwargs):
-        # если текста нет — цена надписи = 0
-        if not self.inscription_text.strip():
+        if not (self.inscription_text or '').strip():
             self.inscription_price = Decimal('0.00')
-        super().save(*args, **kwargs)
+        result = super().save(*args, **kwargs)
         self.recalc_subtotal(save=True)
+        self.order.recalc_totals(save=True)
+        return result
 
     class Meta:
         verbose_name = 'Позиция заказа'
@@ -228,62 +216,62 @@ class OrderItem(models.Model):
         return f'Item #{self.id} of Order #{self.order_id}'
 
 
-class OrderItemBerry(models.Model):
-    item = models.ForeignKey(
-        OrderItem,
-        on_delete=models.CASCADE,
-        related_name='berry_links',
-        verbose_name='Позиция'
-        )
-    option = models.ForeignKey(
-        Option, on_delete=models.PROTECT, related_name='as_berry',
-        limit_choices_to={'category__slug': 'berries'}, verbose_name='Опция (ягода)'
-    )
-    price_at_purchase = models.DecimalField(
-        'Цена ягоды при покупке',
-        max_digits=15,
-        decimal_places=2
-        )
+# class OrderItemBerry(models.Model):
+#     item = models.ForeignKey(
+#         OrderItem,
+#         on_delete=models.CASCADE,
+#         related_name='berry_links',
+#         verbose_name='Позиция'
+#         )
+#     option = models.ForeignKey(
+#         Option, on_delete=models.PROTECT, related_name='as_berry',
+#         limit_choices_to={'category__slug': 'berries'}, verbose_name='Опция (ягода)'
+#     )
+#     price_at_purchase = models.DecimalField(
+#         'Цена ягоды при покупке',
+#         max_digits=15,
+#         decimal_places=2
+#         )
 
-    def save(self, *args, **kwargs):
-        if not self.price_at_purchase or self.price_at_purchase == Decimal('0.00'):
-            self.price_at_purchase = self.option.price_delta or Decimal('0.00')
-        super().save(*args, **kwargs)
-        self.item.recalc_subtotal(save=True)
-        self.item.order.recalc_totals(save=True)
+#     def save(self, *args, **kwargs):
+#         if not self.price_at_purchase or self.price_at_purchase == Decimal('0.00'):
+#             self.price_at_purchase = self.option.price_delta or Decimal('0.00')
+#         super().save(*args, **kwargs)
+#         self.item.recalc_subtotal(save=True)
+#         self.item.order.recalc_totals(save=True)
 
-    class Meta:
-        verbose_name = 'Ягода в позиции'
-        verbose_name_plural = 'Ягоды в позиции'
-        unique_together = ('item', 'option')
+#     class Meta:
+#         verbose_name = 'Ягода в позиции'
+#         verbose_name_plural = 'Ягоды в позиции'
+#         unique_together = ('item', 'option')
 
 
-class OrderItemDecor(models.Model):
-    item = models.ForeignKey(
-        OrderItem,
-        on_delete=models.CASCADE,
-        related_name='decor_links',
-        verbose_name='Позиция'
-        )
-    option = models.ForeignKey(
-        Option, on_delete=models.PROTECT, related_name='as_decor',
-        limit_choices_to={'category__slug': 'decor'}, verbose_name='Опция (декор)'
-    )
-    # нужно ли это?
-    price_at_purchase = models.DecimalField(
-        'Цена декора при покупке',
-        max_digits=8,
-        decimal_places=2
-        )
+# class OrderItemDecor(models.Model):
+#     item = models.ForeignKey(
+#         OrderItem,
+#         on_delete=models.CASCADE,
+#         related_name='decor_links',
+#         verbose_name='Позиция'
+#         )
+#     option = models.ForeignKey(
+#         Option, on_delete=models.PROTECT, related_name='as_decor',
+#         limit_choices_to={'category__slug': 'decor'}, verbose_name='Опция (декор)'
+#     )
+#     # нужно ли это?
+#     price_at_purchase = models.DecimalField(
+#         'Цена декора при покупке',
+#         max_digits=8,
+#         decimal_places=2
+#         )
 
-    def save(self, *args, **kwargs):
-        if not self.price_at_purchase or self.price_at_purchase == Decimal('0.00'):
-            self.price_at_purchase = self.option.price_delta or Decimal('0.00')
-        super().save(*args, **kwargs)
-        self.item.recalc_subtotal(save=True)
-        self.item.order.recalc_totals(save=True)
+#     def save(self, *args, **kwargs):
+#         if not self.price_at_purchase or self.price_at_purchase == Decimal('0.00'):
+#             self.price_at_purchase = self.option.price_delta or Decimal('0.00')
+#         super().save(*args, **kwargs)
+#         self.item.recalc_subtotal(save=True)
+#         self.item.order.recalc_totals(save=True)
 
-    class Meta:
-        verbose_name = 'Декор в позиции'
-        verbose_name_plural = 'Декор в позиции'
-        unique_together = ('item', 'option')
+#     class Meta:
+#         verbose_name = 'Декор в позиции'
+#         verbose_name_plural = 'Декор в позиции'
+#         unique_together = ('item', 'option')
