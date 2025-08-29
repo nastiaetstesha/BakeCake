@@ -48,18 +48,12 @@
           </ul>
           
           <ul class="list-group">
+            <li class="list-group-item border-0 py-61 position-relative"><input type="text" id="LkFormNameField" readonly class="form-control my-2 i cake__textinput" name="first_name" value="{{ user.get_username }}"></li>
             <li class="list-group-item border-0 py-61 position-relative">
-              <v-field v-model="Name" type="text" name="name_format" id="name" :readonly="!Edit" class="form-control my-2 i cake__textinput"></v-field>
-              <error-message name="name_format" class="position-absolute bottom-0 cake_pink fs_12"></error-message>
+              <input type="text" id="LkFormPhoneField" readonly class="form-control my-2 cake__textinput" name="phone" value="{{ customer.phone }}">
+              <small id="RegModalFormError" class="fs_12 cake_pink text-center position-absolute bottom-0"></small>
             </li>
-            <li class="list-group-item border-0 py-61 position-relative">
-              <v-field v-model="Phone" type="text" name="phone_format" id="phone" :readonly="!Edit" class="form-control my-2 cake__textinput"></v-field>
-              <error-message name="phone_format" class="position-absolute bottom-0 cake_pink fs_12"></error-message>
-            </li>
-            <li class="list-group-item border-0 py-61 position-relative">
-              <v-field v-model="Email" type="text" name="email_format" id="email" :readonly="!Edit" class="form-control my-2 cake__textinput"></v-field>
-              <error-message name="email_format" class="position-absolute bottom-0 cake_pink fs_12"></error-message>
-            </li>
+            <li class="list-group-item border-0 py-61 position-relative"><input type="email" id="LkFormEmailField" readonly class="form-control my-2 cake__textinput" name="email" value="{{ user.email }}"></li>
           </ul>
         </div>
       </v-form>
