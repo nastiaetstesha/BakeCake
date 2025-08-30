@@ -36,6 +36,14 @@ def create(request):
         delivery_date=delivery_date,
         consent_personal_data=True,
     )
+    if request.user.is_authenticated:
+        try:
+            from customers.models import Customer
+            customer = Customer.objects.get(user=request.user)
+            order.customer = customer
+            order.save(update_fields=['customer'])
+        except Customer.DoesNotExist:
+            pass
 
     item = OrderItem.objects.create(
         order=order,
