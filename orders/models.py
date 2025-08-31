@@ -31,7 +31,7 @@ class Order(models.Model):
         max_length=20,
         choices=Status.choices,
         # черновик
-        default=Status.DRAFT
+        default=Status.PAID
         )
 
     # Контакты и адреса доставки
