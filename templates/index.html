@@ -221,7 +221,20 @@
           <input v-model="Dates"         type="hidden" name="DATE">
           <input v-model="Time"          type="hidden" name="TIME">
           <input v-model="DelivComments" type="hidden" name="DELIVCOMMENTS">
-          <button type="submit" ref="HiddenFormSubmit">Submit Order</button>
+          <!-- поле согласия отдельным элементом -->
+          <input type="hidden" name="CONSENT" id="hidden-consent">
+
+          <!-- при любом клике проставляем значение - надеюсь прости господи -->
+          <button type="submit"
+                  ref="HiddenFormSubmit"
+                  onclick="(function(){
+                    var c=document.getElementById('consent-pd');
+                    var h=document.getElementById('hidden-consent');
+                    if(h){ h.value = (c && c.checked) ? '1' : ''; }
+                  })()">
+            Submit Order
+          </button>
+
           {% endverbatim %}
         </form>
 
@@ -307,6 +320,16 @@
                 <div class="d-flex">
                   <span class="cake_pink fs_40 fw-bold me-2">Итого: {{ Cost }}₽</span>
                 </div>
+                <div class="form-check mt-3">
+                  <!-- изменения -->
+                  <input class="form-check-input" type="checkbox" id="consent-pd">
+                  <label class="form-check-label cake_grey" for="consent-pd">
+                    Я соглашаюсь с
+                    <a href="{% static 'docs/pd-consent.pdf' %}" target="_blank" rel="noopener"
+                      class="cake_pink text-decoration-none">Политикой обработки персональных данных (PDF)</a>
+                  </label>
+                </div>
+                <!-- до  -->
                 <button type="submit" class="btn btn_hover text-white rounded-pill mt-3 px-5 shadow-none cake__button cake__bg_pink">К оплате</button>
               </div>
             </div>
@@ -327,5 +350,16 @@
       Decors:   { {% for o in decors   %}"{{ o.id }}":"{{ o.name }}"{% if not forloop.last %},{% endif %}{% endfor %} }
     };
   </script>
+<script>
+document.addEventListener('submit', function(e){
+  if (e.target && e.target.id === 'OrderCreateForm') {
+    var h=document.getElementById('hidden-consent');
+    var c=document.getElementById('consent-pd');
+    if (h) h.value = (c && c.checked) ? '1' : '';
+  }
+});
+</script>
+
+
 </main>
 {% endblock %}

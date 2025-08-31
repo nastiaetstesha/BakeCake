@@ -23,6 +23,9 @@ def create(request):
 
     if not all([name, phone, address, levels_id, shape_id, topping_id]):
         return HttpResponseBadRequest('Не заполнены обязательные поля.')
+    
+    consent_raw = (request.POST.get('CONSENT') or '').strip().lower()
+    consent = consent_raw in ('1', 'true', 'on', 'yes')
 
     order = Order.objects.create(
         contact_name=name,
@@ -34,7 +37,7 @@ def create(request):
         apartment='',
         delivery_comment=(request.POST.get('DELIVCOMMENTS') or '').strip(),
         delivery_date=delivery_date,
-        consent_personal_data=True,
+        consent_personal_data=consent,
     )
     if request.user.is_authenticated:
         try:
