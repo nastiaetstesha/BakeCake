@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
-import json
 
 from .forms import SignUpForm
 from .models import Customer
