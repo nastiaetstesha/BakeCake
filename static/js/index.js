@@ -1,271 +1,3 @@
-// Vue.createApp({
-//     name: "App",
-//     components: {
-//         VForm: VeeValidate.Form,
-//         VField: VeeValidate.Field,
-//         ErrorMessage: VeeValidate.ErrorMessage,
-//     },
-//     data() {
-//         return {
-//             schema1: {
-//                 lvls: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' количество уровней';
-//                 },
-//                 form: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' форму торта';
-//                 },
-//                 topping: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' топпинг';
-//                 }
-//             },
-//             schema2: {
-//                 name: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' имя';
-//                 },
-//                 phone: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' телефон';
-//                 },
-//                 name_format: (value) => {
-//                     const regex = /^[a-zA-Zа-яА-Я]+$/
-//                     if (!value) {
-//                         return true;
-//                     }
-//                     if ( !regex.test(value)) {
-
-//                         return '⚠ Формат имени нарушен';
-//                     }
-//                     return true;
-//                 },
-//                 email_format: (value) => {
-//                     const regex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i
-//                     if (!value) {
-//                         return true;
-//                     }
-//                     if ( !regex.test(value)) {
-
-//                         return '⚠ Формат почты нарушен';
-//                     }
-//                     return true;
-//                 },
-//                 phone_format:(value) => {
-//                     const regex = /^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/
-//                     if (!value) {
-//                         return true;
-//                     }
-//                     if ( !regex.test(value)) {
-
-//                         return '⚠ Формат телефона нарушен';
-//                     }
-//                     return true;
-//                 },
-//                 email: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' почту';
-//                 },
-//                 address: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' адрес';
-//                 },
-//                 date: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' дату доставки';
-//                 },
-//                 time: (value) => {
-//                     if (value) {
-//                         return true;
-//                     }
-//                     return ' время доставки';
-//                 }
-//             },
-//             DATA: {
-//                 Levels: ['не выбрано', '1', '2', '3'],
-//                 Forms: ['не выбрано', 'Круг', 'Квадрат', 'Прямоугольник'],
-//                 Toppings: ['не выбрано', 'Без', 'Белый соус', 'Карамельный', 'Кленовый', 'Черничный', 'Молочный шоколад', 'Клубничный'],
-//                 Berries: ['нет', 'Ежевика', 'Малина', 'Голубика', 'Клубника'],
-//                 Decors: [ 'нет', 'Фисташки', 'Безе', 'Фундук', 'Пекан', 'Маршмеллоу', 'Марципан']
-//             },
-//             Costs: {
-//                 Levels: [0, 400, 750, 1100],
-//                 Forms: [0, 600, 400, 1000],
-//                 Toppings: [0, 0, 200, 180, 200, 300, 350, 200],
-//                 Berries: [0, 400, 300, 450, 500],
-//                 Decors: [0, 300, 400, 350, 300, 200, 280],
-//                 Words: 500
-//             },
-//             Levels: 0,
-//             Form: 0,
-//             Topping: 0,
-//             Berries: 0,
-//             Decor: 0,
-//             Words: '',
-//             Comments: '',
-//             Designed: false,
-
-//             Name: '',
-//             Phone: null,
-//             Email: null,
-//             Address: null,
-//             Dates: null,
-//             Time: null,
-//             DelivComments: ''
-//         }
-//     },
-//     methods: {
-//         ToStep4() {
-//             this.Designed = true
-//             setTimeout(() => this.$refs.ToStep4.click(), 0);
-//         }
-//     },
-//     computed: {
-//         Cost() {
-//             let W = this.Words ? this.Costs.Words : 0
-//             return this.Costs.Levels[this.Levels] + this.Costs.Forms[this.Form] +
-//                 this.Costs.Toppings[this.Topping] + this.Costs.Berries[this.Berries] +
-//                 this.Costs.Decors[this.Decor] + W
-//         }
-//     }
-// }).mount('#VueApp')
-
-
-
-
-// !!!!!!!!!!!!!!!!!!
-// static/js/index.js  — ПОЛНАЯ ЗАМЕНА
-// (function () {
-//   const { createApp } = Vue;
-
-//   function getCookie(name) {
-//     let cookieValue = null;
-//     if (document.cookie && document.cookie !== "") {
-//       const cookies = document.cookie.split(";");
-//       for (let i = 0; i < cookies.length; i++) {
-//         const cookie = cookies[i].trim();
-//         if (cookie.substring(0, name.length + 1) === (name + "=")) {
-//           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-//           break;
-//         }
-//       }
-//     }
-//     return cookieValue;
-//   }
-
-//   createApp({
-//     components: {
-//       "v-form": VeeValidate.Form,
-//       "v-field": VeeValidate.Field,
-//       "error-message": VeeValidate.ErrorMessage,
-//     },
-
-//     data() {
-//       return {
-//         // выбор торта
-//         Levels: "",   // обязателен
-//         Form: "",     // обязателен
-//         Topping: "",  // обязателен
-//         Berries: "",  // опционально (single-choice как сейчас)
-//         Decor: "",    // опционально (single-choice как сейчас)
-//         Words: "",
-//         Comments: "",
-
-//         // шаг оформления
-//         Designed: false,
-
-//         // доставка/контакты
-//         Name: "",
-//         Phone: "",
-//         Email: "",
-//         Address: "",
-//         Dates: "",
-//         Time: "",
-//         DelivComments: "",
-
-//         // цена в правом верхнем углу
-//         Cost: 0,
-
-//         // чтобы vee-validate не ругался на :validation-schema
-//         schema1: {},
-//         schema2: {},
-//       };
-//     },
-
-//     mounted() {
-//       // при первом рендере тоже попробуем посчитать (вернётся 0, если не выбраны обязательные)
-//       this.updateCost();
-//     },
-
-//     watch: {
-//       Levels: "updateCost",
-//       Form: "updateCost",
-//       Topping: "updateCost",
-//       Berries: "updateCost",
-//       Decor: "updateCost",
-//       Words: "updateCost",
-//     },
-
-//     methods: {
-//       ToStep4() {
-//         this.Designed = true;
-//         // прокрутка к оформлению
-//         try { location.hash = "#step4"; } catch (_) {}
-//       },
-
-//       async updateCost() {
-//         try {
-//           const fd = new FormData();
-//           if (this.Levels)  fd.append("LEVELS", this.Levels);
-//           if (this.Form)    fd.append("FORM", this.Form);
-//           if (this.Topping) fd.append("TOPPING", this.Topping);
-//           if (this.Berries) fd.append("BERRIES", this.Berries);
-//           if (this.Decor)   fd.append("DECOR", this.Decor);
-//           if ((this.Words || "").trim()) fd.append("WORDS", this.Words);
-
-//           const resp = await fetch("/orders/price/", {
-//             method: "POST",
-//             headers: { "X-CSRFToken": getCookie("csrftoken") },
-//             body: fd,
-//           });
-
-//           if (!resp.ok) {
-//             this.Cost = 0;
-//             return;
-//           }
-
-//           const data = await resp.json();
-//           const p = Number(data && data.price);
-//           this.Cost = Number.isFinite(p) ? p : 0; // никаких NaN
-//         } catch (e) {
-//           this.Cost = 0;
-//         }
-//       },
-//     },
-//   }).mount("#VueApp");
-// })();
-
-
-
-
-/* ===== CakeBake front (Vue 3) ===== */
 document.addEventListener('DOMContentLoaded', () => {
   const mountEl = document.getElementById('VueApp');
   if (!mountEl) return console.warn('[CakeBake] #VueApp not found');
@@ -279,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const { createApp, ref, watch, onMounted } = Vue;
 
-  // vee-validate может не подтянуться из CDN — дадим «заглушки», чтобы шаблон не падал
+  // vee-validate может не подтянуться из CDN — дадим «заглушки»
   const V = window.VeeValidate || {};
   const FormComp = V.Form || {
     emits: ['submit'],
@@ -324,9 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const app = createApp({
     setup() {
+      // --- выбранный базовый торт (с бэка) ---
+      const selectedCake = ref(window.initialSelectedCake || null);
+      const baseCakeId   = ref(selectedCake.value ? selectedCake.value.id : null);
+
+
       // выборы конструктора
       const Levels   = ref(null);
-      const FormSel  = ref(null); // нельзя называть "Form" — конфликтует с компонентом
+      const FormSel  = ref(null);
       const Topping  = ref(null);
       const Berries  = ref(null);
       const Decor    = ref(null);
@@ -352,38 +89,52 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       async function recalcPrice() {
-        // ничего не выбрано — ноль и выходим
+        // если выбран готовый торт → цена от него + надбавки за кастом
+        let basePrice = 0;
+        if (selectedCake.value && typeof selectedCake.value.price === 'number') {
+          basePrice = selectedCake.value.price;
+        }
+
         const any =
           Levels.value || FormSel.value || Topping.value ||
           Berries.value || Decor.value || (Words.value && Words.value.trim());
-        if (!any) { Cost.value = 0; return; }
 
-        const p = new URLSearchParams();
-        if (Levels.value)  p.append('LEVELS',  Levels.value);
-        if (FormSel.value) p.append('FORM',    FormSel.value);
-        if (Topping.value) p.append('TOPPING', Topping.value);
-        if (Berries.value) p.append('BERRIES', Berries.value);
-        if (Decor.value)   p.append('DECOR',   Decor.value);
-        if (Words.value && Words.value.trim()) p.append('WORDS', Words.value.trim());
-
-        try {
-          const res = await fetch('/orders/price/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-              'X-CSRFToken': getCookie('csrftoken'),
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: p.toString(),
-          });
-          const data = await res.json();
-          if (typeof data.price === 'number' && isFinite(data.price)) {
-            Cost.value = Math.round(data.price);
-          }
-        } catch (e) {
-          console.error('[CakeBake] price error', e);
+        if (!any && !basePrice) {
+          Cost.value = 0;
+          return;
         }
-      }
+
+        async function recalcPrice() {
+  const p = new URLSearchParams();
+  if (baseCakeId.value) p.append('CAKE_ID', baseCakeId.value);
+  if (Levels.value)  p.append('LEVELS',  Levels.value);
+  if (FormSel.value) p.append('FORM',    FormSel.value);
+  if (Topping.value) p.append('TOPPING', Topping.value);
+  if (Berries.value) p.append('BERRIES', Berries.value);
+  if (Decor.value)   p.append('DECOR',   Decor.value);
+  if (Words.value && Words.value.trim()) p.append('WORDS', Words.value.trim());
+
+  try {
+    const res = await fetch('/orders/price/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: p.toString(),
+    });
+    const data = await res.json();
+    if (typeof data.price === 'number' && isFinite(data.price)) {
+      // ВАЖНО: сервер уже вернул И базу, и допы → ничего не прибавляем
+      Cost.value = Math.round(data.price);
+    } else {
+      Cost.value = 0;
+    }
+  } catch (e) {
+    console.error('[CakeBake] price error', e);
+  }
+}
 
       function ToStep4() {
         // по ТЗ обязательны 3 селекта
@@ -392,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         Designed.value = true;
-        // прокрутка/якорь
         try { location.hash = '#step4'; } catch (_) {}
         recalcPrice();
       }
@@ -401,17 +151,27 @@ document.addEventListener('DOMContentLoaded', () => {
       watch([Levels, FormSel, Topping, Berries, Decor, Words], recalcPrice);
 
       onMounted(() => {
-        // первый пересчет
-        recalcPrice();
-        console.log('[CakeBake] mounted');
-      });
+  recalcPrice();              // <-- даже если опции не выбраны, подтянет базу
+  console.log('[CakeBake] mounted');
+});
+
+return {
+  // ...
+  selectedCake, baseCakeId,   // <-- чтобы скрытый инпут получил id торта
+  // ...
+};
+
 
       return {
-        // модели
+        // базовый торт
+        selectedCake, baseCakeId,
+        // модели конструктора
         Levels, Form: FormSel, Topping, Berries, Decor, Words, Comments,
+        // данные клиента
         Name, Phone, Email, Address, Dates, Time, DelivComments,
+        // UI
         Designed, Cost, DATA,
-        // действия
+        // методы
         ToStep4,
       };
     },
@@ -422,6 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
   app.component('v-field', FieldComp);
   app.component('error-message', ErrorComp);
 
-  // один mount
+  // mount
   app.mount('#VueApp');
 });

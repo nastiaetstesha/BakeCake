@@ -1,6 +1,7 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from catalog.models import Option, Cake
 from decimal import Decimal
 from django.http import JsonResponse, HttpResponseBadRequest
-from django.shortcuts import redirect, get_object_or_404
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -10,7 +11,6 @@ from .models import Order, OrderItem
 
 @require_POST
 def create(request):
-
     name = (request.POST.get('NAME') or '').strip()
     phone = (request.POST.get('PHONE') or '').strip()
     email = (request.POST.get('EMAIL') or '').strip()
@@ -48,9 +48,15 @@ def create(request):
         except Customer.DoesNotExist:
             pass
 
+    # ---- ВАЖНО: фиксируем базовый торт ----
+    cake_obj = None
+    cake_id = (request.POST.get('CAKE_ID') or '').strip()
+    if cake_id:
+        cake_obj = get_object_or_404(Cake, id=cake_id)
+
     item = OrderItem.objects.create(
         order=order,
-        cake=None,
+        cake=cake_obj,  # <-- теперь базовый торт сохранится
         levels_id=levels_id,
         shape_id=shape_id,
         topping_id=topping_id,
@@ -63,6 +69,7 @@ def create(request):
 
     return redirect('lk')
 
+
 # это для расчета стоимости живой в углу страницы
 @require_POST
 def price(request):
@@ -74,5 +81,11 @@ def price(request):
         decor_id=request.POST.get('DECOR') or None,
         inscription_text=(request.POST.get('WORDS') or '').strip(),
     )
+
+    # ---- ВАЖНО: прикрутим базовый торт к фейковому айтему ----
+    cake_id = (request.POST.get('CAKE_ID') or '').strip()
+    if cake_id:
+        fake.cake = get_object_or_404(Cake, id=cake_id)
+
     fake.recalc_subtotal(save=False)
     return JsonResponse({'price': float(fake.line_subtotal)})

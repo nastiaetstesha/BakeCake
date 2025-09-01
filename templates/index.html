@@ -92,29 +92,57 @@
     </article>
 
     <article class="row pt-header d-flex justify-content-center" id="step2">
-        <h2 class="font_Gogh fs_40 cake_blue text-center mb-3">Каталог</h2>
-        {% for cake in cakes %}
-        <div class="col-12 col-sm-6 col-lg-4 d-flex flex-column align-items-center">
-            <div class="card border-0 cake__hover">
-                <a href="#step3" class="card-img-overlay"></a>
+    <h2 class="font_Gogh fs_40 cake_blue text-center mb-4">Каталог</h2>
+    {% for cake in cakes %}
+    <div class="col-12 col-sm-6 col-lg-4 mb-4 d-flex">
+        <div class="card border-0 cake__hover w-100">
+            <!-- карточка-ссылка сразу перегружает страницу и скроллит -->
+            <a href="?selected_cake={{ cake.id }}#step3" class="card-img-overlay"></a>
+            
+            <div style="height: 250px; overflow: hidden;">
                 {% if cake.image %}
-                <img src="{{ cake.image }}" alt="{{ cake.title }}" class="">
+                <img src="{{ cake.image }}" alt="{{ cake.title }}" 
+                     class="w-100 h-100 object-fit-cover">
                 {% else %}
-                <img src="{% static 'img/default-cake.jpg' %}" alt="Default cake image" class="">
+                <img src="{% static 'img/default-cake.jpg' %}" alt="Default cake image" 
+                     class="w-100 h-100 object-fit-cover">
                 {% endif %}
-                <span class="cake_blue mt-4 fw-lighter mb-4 text-center">{{ cake.title }}</span>
+            </div>
+            
+            <div class="card-body d-grid" style="grid-template-rows: auto auto auto 1fr auto; gap: 0.5rem;">
+                <span class="cake_blue text-center fw-lighter">{{ cake.title }}</span>
                 <span class="text-muted text-center">{{ cake.description }}</span>
                 <span class="fw-bold text-center">{{ cake.price }} руб.</span>
+                
+                <div></div>
+                
+                <!-- кнопка → перезагрузка с GET и скролл -->
+                <a href="?selected_cake={{ cake.id }}#step3"
+                   class="btn btn-primary order-cake-btn">
+                    Заказать этот торт
+                </a>
             </div>
         </div>
-        {% empty %}
-        <div class="col-12 text-center">
-            <p>Торты не найдены</p>
-        </div>
-        {% endfor %}
-    </article>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">
+        <p>Торты не найдены</p>
+    </div>
+    {% endfor %}
+</article>
+
+
     <article id="VueApp">
       <section class="row pt-header" id="step3">
+        <div v-if="selectedCake" class="alert alert-info mb-4">
+          <h4>Вы выбрали готовый торт: <strong>[[ selectedCake.title ]]</strong></h4>
+          <p>Базовая цена: <strong>[[ selectedCake.price ]] ₽</strong></p>
+          <p>Теперь выберите дополнительные опции для кастомизации:</p>
+        </div>
+        <script>
+          window.initialSelectedCake = {{ selected_cake|default:"null"|safe }};
+        </script>
+
         <h2 class="font_Gogh fs_40 cake_blue text-center">Создать свой торт</h2>
 
         <!-- /--замена: возвращаем submit → ToStep4 -->
@@ -205,8 +233,10 @@
 
         <!-- скрытая форма на /orders/create/ -->
         <form id="OrderCreateForm" class="d-none" method="post" action="{% url 'order_create' %}">
+
           {% csrf_token %}
           {% verbatim %}
+          <input type="hidden" name="CAKE_ID" :value="baseCakeId">
           <input v-model="Levels"        type="hidden" name="LEVELS">
           <input v-model="Form"          type="hidden" name="FORM">
           <input v-model="Topping"       type="hidden" name="TOPPING">
@@ -221,6 +251,7 @@
           <input v-model="Dates"         type="hidden" name="DATE">
           <input v-model="Time"          type="hidden" name="TIME">
           <input v-model="DelivComments" type="hidden" name="DELIVCOMMENTS">
+
           <!-- поле согласия отдельным элементом -->
           <input type="hidden" name="CONSENT" id="hidden-consent">
 
@@ -254,6 +285,7 @@
                 <label for="name" class="my-1 fs_40 cake_blue">Имя</label>
                 <label for="phone" class="my-1 fs_40 cake_blue">Телефон</label>
                 <label for="email" class="my-1 fs_40 cake_blue">Почта</label>
+                <label for="promocod" class="my-1 fs_40 cake_blue">Промокод</label>
               </div>
               <div class="col-6 col-lg-4 d-flex flex-column">
                 <div class="position-relative pb-1">
@@ -270,6 +302,11 @@
                   <v-field v-model="Email" :class="Email ? 'cake__border_blue': ''" type="email" name="email" id="email" placeholder="Введите почту" class="form-control my-3 cake__textinput"></v-field>
                   <v-field v-model="Email" type="email" name="email_format" class="d-none"></v-field>
                   <error-message name="email_format" class="position-absolute bottom-0 cake_pink fs_12"></error-message>
+                </div>
+                <div class="position-relative pb-1">
+                  <v-field v-model="Promocod" :class="Promocod ? 'cake__border_blue': ''" type="text" name="promocod" id="promocod" placeholder="Введите промокод при наличии" class="form-control my-3 cake__textinput"></v-field>
+                  <v-field v-model="Promocod" type="text" name="promocod_format" class="d-none"></v-field>
+                  <error-message name="promocod_format" class="position-absolute bottom-0 cake_pink fs_12"></error-message>
                 </div>
               </div>
 
@@ -349,6 +386,7 @@
       Berries:  { {% for o in berries  %}"{{ o.id }}":"{{ o.name }}"{% if not forloop.last %},{% endif %}{% endfor %} },
       Decors:   { {% for o in decors   %}"{{ o.id }}":"{{ o.name }}"{% if not forloop.last %},{% endif %}{% endfor %} }
     };
+    window.initialSelectedCake = {{ selected_cake_json|safe }};
   </script>
 <script>
 document.addEventListener('submit', function(e){
@@ -358,6 +396,10 @@ document.addEventListener('submit', function(e){
     if (h) h.value = (c && c.checked) ? '1' : '';
   }
 });
+</script>
+
+<script>
+  window.initialSelectedCake = {{ selected_cake|default:"null"|safe }};
 </script>
 
 
