@@ -96,7 +96,7 @@
         {% for cake in cakes %}
         <div class="col-12 col-sm-6 col-lg-4 d-flex flex-column align-items-center">
             <div class="card border-0 cake__hover">
-                <a href="#" class="card-img-overlay"></a>
+                <a href="#step3" class="card-img-overlay"></a>
                 {% if cake.image %}
                 <img src="{{ cake.image }}" alt="{{ cake.title }}" class="">
                 {% else %}
@@ -325,7 +325,7 @@
                   <input class="form-check-input" type="checkbox" id="consent-pd">
                   <label class="form-check-label cake_grey" for="consent-pd">
                     Я соглашаюсь с
-                    <a href="{% static 'docs/pd-consent.pdf' %}" target="_blank" rel="noopener"
+                    <a href="/static/docs/pd-consent.pdf" target="_blank" rel="noopener"
                       class="cake_pink text-decoration-none">Политикой обработки персональных данных (PDF)</a>
                   </label>
                 </div>
